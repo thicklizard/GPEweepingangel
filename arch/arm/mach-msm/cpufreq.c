@@ -71,12 +71,26 @@ static int override_cpu;
 static int set_cpu_freq(struct cpufreq_policy *policy, unsigned int new_freq)
 {
 	int ret = 0;
+	int saved_sched_policy = -EINVAL;
+	int saved_sched_rt_prio = -EINVAL;
+
 #ifdef CONFIG_PERFLOCK
 	int perf_freq = 0;
 #endif
 	struct cpufreq_freqs freqs;
 	struct cpu_freq *limit = &per_cpu(cpu_freq_info, policy->cpu);
+	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
 
+	if (limit->limits_init) {
+		if (new_freq > limit->allowed_max) {
+			new_freq = limit->allowed_max;
+			pr_debug("max: limiting freq to %d\n", new_freq);
+		}
+		if (new_freq < limit->allowed_min) {
+			new_freq = limit->allowed_min;
+			pr_debug("min: limiting freq to %d\n", new_freq);
+		}
+	}
 	freqs.old = policy->cur;
 #ifdef CONFIG_PERFLOCK
 	perf_freq = perflock_override(policy, new_freq);
@@ -109,15 +123,60 @@ static int set_cpu_freq(struct cpufreq_policy *policy, unsigned int new_freq)
 	}
 
 	freqs.cpu = policy->cpu;
+	/*
+	 * Put the caller into SCHED_FIFO priority to avoid cpu starvation
+	 * in the acpuclk_set_rate path while increasing frequencies
+	 */
+
+	if (freqs.new > freqs.old && current->policy != SCHED_FIFO) {
+		saved_sched_policy = current->policy;
+		saved_sched_rt_prio = current->rt_priority;
+		sched_setscheduler_nocheck(current, SCHED_FIFO, &param);
+	}
 	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
 	ret = acpuclk_set_rate(policy->cpu, freqs.new, SETRATE_CPUFREQ);
 	if (!ret)
 		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
 
+	/* Restore priority after clock ramp-up */
+	if (freqs.new > freqs.old && saved_sched_policy >= 0) {
+		param.sched_priority = saved_sched_rt_prio;
+		sched_setscheduler_nocheck(current, saved_sched_policy, &param);
+	}
+
 	return ret;
 }
 
 #ifdef CONFIG_SMP
+static int __cpuinit msm_cpufreq_cpu_callback(struct notifier_block *nfb,
+					unsigned long action, void *hcpu)
+{
+	unsigned int cpu = (unsigned long)hcpu;
+
+	switch (action) {
+	case CPU_ONLINE:
+	case CPU_ONLINE_FROZEN:
+		per_cpu(cpufreq_suspend, cpu).device_suspended = 0;
+		break;
+	case CPU_DOWN_PREPARE:
+	case CPU_DOWN_PREPARE_FROZEN:
+		mutex_lock(&per_cpu(cpufreq_suspend, cpu).suspend_mutex);
+		per_cpu(cpufreq_suspend, cpu).device_suspended = 1;
+		mutex_unlock(&per_cpu(cpufreq_suspend, cpu).suspend_mutex);
+		break;
+	case CPU_DOWN_FAILED:
+	case CPU_DOWN_FAILED_FROZEN:
+		per_cpu(cpufreq_suspend, cpu).device_suspended = 0;
+		break;
+	}
+	return NOTIFY_OK;
+}
+
+static struct notifier_block __refdata msm_cpufreq_cpu_notifier = {
+	.notifier_call = msm_cpufreq_cpu_callback,
+
+};
+
 static void set_cpu_work(struct work_struct *work)
 {
 	struct cpufreq_work_struct *cpu_work =
@@ -413,6 +472,7 @@ static int __init msm_cpufreq_register(void)
 
 #ifdef CONFIG_SMP
 	msm_cpufreq_wq = create_workqueue("msm-cpufreq");
+	register_hotcpu_notifier(&msm_cpufreq_cpu_notifier);
 #endif
 
 	register_pm_notifier(&msm_cpufreq_pm_notifier);
