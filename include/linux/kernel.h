@@ -90,20 +90,9 @@
  	
 
 /*
-
-	96 	
-
  * Multiplies an integer by a fraction, while avoiding unnecessary
-
-	97 	
-
  * overflow or loss of precision.
-
-	98 	
-
  */
-
-	99 	
 
 #define mult_frac(x, numer, denom)(			\
 {							\
