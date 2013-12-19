@@ -2994,6 +2994,8 @@ static int tabla_codec_reset_interpolator(struct snd_soc_dapm_widget *w,
 				  snd_soc_read(codec,
 				  rx_digital_gain_reg[w->shift])
 				  );
+				snd_soc_write(codec, rx_digital_gain_reg[0], 10);
+				snd_soc_write(codec, rx_digital_gain_reg[1], 10);
 		break;
 	}
 	return 0;
