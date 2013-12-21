@@ -97,7 +97,7 @@ extern unsigned long avenrun[];
 extern void get_avenrun(unsigned long *loads, unsigned long offset, int shift);
 
 #define FSHIFT		11		
-#define FIXED_1		(1<<FSHIFT)	
+#define FIXED_1		(1UL<<FSHIFT)  	
 #define LOAD_FREQ  (4*HZ+61)  
 #define EXP_1    1896    
 #define EXP_5    2017    
