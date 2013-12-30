@@ -3408,6 +3408,7 @@ static struct clk_freq_tbl clk_tbl_gfx3d[] = {
 	F_GFX3D(400000000, pll2,  1,  2),
 	F_GFX3D(450000000, pll15, 1,  2),
 	F_GFX3D(512000000, pll2,  5,  8),
+	F_GFX3D(533333000, pll2, 2,  3),
 	F_END
 };
 
@@ -3431,6 +3432,7 @@ static struct clk_freq_tbl clk_tbl_gfx3d_8960[] = {
 	F_GFX3D(400000000, pll2, 1,  2),
 	F_GFX3D(450000000, pll15, 1,  2),
 	F_GFX3D(512000000, pll2,  5,  8),
+	F_GFX3D(533333000, pll2, 2,  3),
 	F_END
 };
 
@@ -3443,13 +3445,13 @@ static unsigned long fmax_gfx3d_8064ab[MAX_VDD_LEVELS] __initdata = {
 static unsigned long fmax_gfx3d_8064[MAX_VDD_LEVELS] __initdata = {
 	[VDD_DIG_LOW]     = 128000000,
 	[VDD_DIG_NOMINAL] = 400000000,
-	[VDD_DIG_HIGH]    = 512000000
+	[VDD_DIG_HIGH]    = 533333000
 };
 
 static unsigned long fmax_gfx3d_8930[MAX_VDD_LEVELS] __initdata = {
 	[VDD_DIG_LOW]     = 192000000,
 	[VDD_DIG_NOMINAL] = 400000000,
-	[VDD_DIG_HIGH]    = 512000000
+	[VDD_DIG_HIGH]    = 533333000
 };
 
 static struct bank_masks bmnd_info_gfx3d = {
@@ -3491,7 +3493,7 @@ static struct rcg_clk gfx3d_clk = {
 		.dbg_name = "gfx3d_clk",
 		.ops = &clk_ops_rcg,
 		VDD_DIG_FMAX_MAP3(LOW,  128000000, NOMINAL, 400000000,
-				  HIGH, 512000000),
+				  HIGH, 533333000),
 		CLK_INIT(gfx3d_clk.c),
 		.depends = &gmem_axi_clk.c,
 	},
