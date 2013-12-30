@@ -3374,8 +3374,8 @@ static struct rcg_clk gfx2d1_clk = {
 		.dbg_name = "gfx2d1_clk",
 		.ops = &clk_ops_rcg,
 		.flags = CLKFLAG_SKIP_HANDOFF,
-		VDD_DIG_FMAX_MAP3(LOW,  100000000, NOMINAL, 266667000,
-				  HIGH, 320000000),
+		VDD_DIG_FMAX_MAP3(LOW,  100000000, NOMINAL, 228571000,
+				  HIGH, 266667000),
 		CLK_INIT(gfx2d1_clk.c),
 	},
 };
@@ -3432,6 +3432,7 @@ static struct clk_freq_tbl clk_tbl_gfx3d_8960[] = {
 	F_GFX3D(320000000, pll2, 2,  5),
 	F_GFX3D(400000000, pll2, 1,  2),
 	F_GFX3D(450000000, pll15, 1,  2),
+	F_GFX3D(512000000, pll2,  5,  8),
 	F_GFX3D(533333000, pll2, 2,  3),
 	F_END
 };
