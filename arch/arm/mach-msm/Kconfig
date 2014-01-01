@@ -2865,6 +2865,12 @@ config SUPPORT_USB_SPEAKER
 	bool "Support USB Speaker"
 	default n
 
+config CPU_OC
+        bool "OC CPU"
+	default y
+        help
+         To add support for overclocked cpu.
+
 config SENSE_4_PLUS
 	bool "SENSE 4 PLUS"
 	default y
@@ -2920,5 +2926,6 @@ config IOEXTENDER
         bool "Enable IOEXTENDER feature"
 	help
 	 To support IOEXTENDER feature
+
 endif
 
