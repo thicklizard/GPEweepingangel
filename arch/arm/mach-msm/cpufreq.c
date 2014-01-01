@@ -74,9 +74,6 @@ static int set_cpu_freq(struct cpufreq_policy *policy, unsigned int new_freq)
 	int saved_sched_policy = -EINVAL;
 	int saved_sched_rt_prio = -EINVAL;
 
-#ifdef CONFIG_PERFLOCK
-	int perf_freq = 0;
-#endif
 	struct cpufreq_freqs freqs;
 	struct cpu_freq *limit = &per_cpu(cpu_freq_info, policy->cpu);
 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
@@ -92,17 +89,9 @@ static int set_cpu_freq(struct cpufreq_policy *policy, unsigned int new_freq)
 		}
 	}
 	freqs.old = policy->cur;
-#ifdef CONFIG_PERFLOCK
-	perf_freq = perflock_override(policy, new_freq);
-	if (perf_freq) {
-		if (policy->cur == perf_freq)
-			return 0;
-		else
-			freqs.new = perf_freq;
-	} else if (override_cpu) {
-#else
+
 	if (override_cpu) {
-#endif
+
 		if (policy->cur == policy->max)
 			return 0;
 		else
@@ -357,8 +346,8 @@ static int __cpuinit msm_cpufreq_init(struct cpufreq_policy *policy)
 #endif
 	}
 #ifdef CONFIG_MSM_CPU_FREQ_SET_MIN_MAX
-	policy->min = CONFIG_MSM_CPU_FREQ_MIN;
-	policy->max = CONFIG_MSM_CPU_FREQ_MAX;
+	policy->user_policy.min = policy->min;
+	policy->user_policy.max = policy->max;
 #endif
 
 #ifdef CONFIG_ARCH_APQ8064
@@ -398,6 +387,9 @@ static int __cpuinit msm_cpufreq_init(struct cpufreq_policy *policy)
 	INIT_WORK(&cpu_work->work, set_cpu_work);
 	init_completion(&cpu_work->complete);
 #endif
+
+	policy->user_policy.min = policy->min;
+	policy->user_policy.max = policy->max;
 
 	return 0;
 }
