@@ -3581,7 +3581,7 @@ void idle_balance(int this_cpu, struct rq *this_rq)
 
 	raw_spin_lock(&this_rq->lock);
 
-	if (pulled_task || time_after(jiffies, this_rq->next_balance)) {
+	if (!pulled_task || time_after(jiffies, this_rq->next_balance)) {
 		this_rq->next_balance = next_balance;
 	}
 }
