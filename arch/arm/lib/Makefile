@@ -45,3 +45,8 @@ lib-$(CONFIG_ARCH_SHARK)	+= io-shark.o
 
 $(obj)/csumpartialcopy.o:	$(obj)/csumpartialcopygeneric.S
 $(obj)/csumpartialcopyuser.o:	$(obj)/csumpartialcopygeneric.S
+
+ifeq ($(CONFIG_NEON),y)
+  CFLAGS_xor-neon.o		+= -mfloat-abi=softfp -mfpu=neon
+  lib-$(CONFIG_XOR_BLOCKS)	+= xor-neon.o
+endif

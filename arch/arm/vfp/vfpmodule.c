@@ -20,6 +20,7 @@
 #include <linux/init.h>
 #include <linux/uaccess.h>
 #include <linux/user.h>
+#include <linux/export.h>
 #include <linux/proc_fs.h>
 
 #include <asm/cp15.h>
@@ -447,6 +448,46 @@ static int vfp_hotplug(struct notifier_block *b, unsigned long action,
 		vfp_enable(NULL);
 	return NOTIFY_OK;
 }
+
+/*
+ * Kernel-side NEON/VFP support functions
+ */
+void kernel_vfp_begin(void)
+{
+	struct thread_info *thread = current_thread_info();
+	unsigned int cpu = get_cpu();
+	u32 fpexc;
+
+	/* Avoid using the NEON/VFP in interrupt context */
+	might_sleep();
+	preempt_disable();
+
+	fpexc = fmrx(FPEXC) | FPEXC_EN;
+	fmxr(FPEXC, fpexc);
+
+	/*
+	 * Save the userland NEON/VFP state. Under UP, the owner could be a task
+	 * other than 'current'
+	 */
+	if (vfp_state_in_hw(cpu, thread))
+		vfp_save_state(&thread->vfpstate, fpexc);
+#ifndef CONFIG_SMP
+	else if (vfp_current_hw_state[cpu] != NULL)
+		vfp_save_state(vfp_current_hw_state[cpu], fpexc);
+#endif
+	vfp_current_hw_state[cpu] = NULL;
+	put_cpu();
+}
+EXPORT_SYMBOL(kernel_vfp_begin);
+
+void kernel_vfp_end(void)
+{
+	/* Disable the NEON/VFP unit. */
+	fmxr(FPEXC, fmrx(FPEXC) & ~FPEXC_EN);
+	preempt_enable();
+}
+EXPORT_SYMBOL(kernel_vfp_end);
+
 
 #ifdef CONFIG_PROC_FS
 static int proc_read_status(char *page, char **start, off_t off, int count,
