@@ -58,7 +58,7 @@ config CPU_FREQ_DEFAULT_GOV_PERFORMANCE
 	  the frequency statically to the highest frequency supported by
 	  the CPU.
 
-onfig CPU_FREQ_DEFAULT_GOV_DANCEDANCE
+config CPU_FREQ_DEFAULT_GOV_DANCEDANCE
 	bool "dancedance"
 	select CPU_FREQ_GOV_DANCEDANCE
 	  help
@@ -133,9 +133,6 @@ config CPU_FREQ_DEFAULT_GOV_INTERACTIVE
 	  loading your cpufreq low-level hardware driver, using the
 	  'interactive' governor for latency-sensitive workloads.
 
-config CPU_FREQ_GOV_DANCEDANCE
-	tristate "'dancedance' cpufreq governor"
-	depends on CPU_FREQ
 
 endchoice
 
@@ -309,6 +306,10 @@ config CPU_FREQ_GOV_CONSERVATIVE
 	  For details, take a look at linux/Documentation/cpu-freq.
 
 	  If in doubt, say N.
+
+config CPU_FREQ_GOV_DANCEDANCE
+	tristate "'dancedance' cpufreq governor"
+	depends on CPU_FREQ
 
 menu "x86 CPU frequency scaling drivers"
 depends on X86
