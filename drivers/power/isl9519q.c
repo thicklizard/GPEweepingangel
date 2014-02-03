@@ -542,7 +542,7 @@ static int set_reg(void *data, u64 val)
 {
 	int addr = (int)data;
 	int ret;
-	u16 temp;
+	u16 temp = 0;
 
 	temp = (u16) val;
 	ret = isl9519q_write_reg(the_isl_chg->client, addr, temp);
@@ -558,7 +558,7 @@ static int get_reg(void *data, u64 *val)
 {
 	int addr = (int)data;
 	int ret;
-	u16 temp;
+	u16 temp = 0;
 
 	ret = isl9519q_read_reg(the_isl_chg->client, addr, &temp);
 	if (ret) {
