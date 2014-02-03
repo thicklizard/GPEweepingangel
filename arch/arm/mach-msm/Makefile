@@ -588,6 +588,8 @@ obj-y += display/
 
 obj-$(CONFIG_IO_FOOTPRINT) += io_footprint.o
 
+obj-$(CONFIG_FORCE_FAST_CHARGE) += fastchg.o
+
 obj-$(CONFIG_IOEXTENDER) += ADP5585_ioextender.o
 
 #PWR2_ADD, @CPU Sniffer: CPU usage statistics.

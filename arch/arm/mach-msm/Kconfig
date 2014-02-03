@@ -2875,6 +2875,13 @@ config CPU_OC
         help
          To add support for overclocked cpu.
 
+config FORCE_FAST_CHARGE
+	bool "Force AC charge mode at will"
+	default y
+	help
+	  A simple sysfs interface to force adapters that
+	  are detected as USB to charge as AC.
+
 config SENSE_4_PLUS
 	bool "SENSE 4 PLUS"
 	default y
