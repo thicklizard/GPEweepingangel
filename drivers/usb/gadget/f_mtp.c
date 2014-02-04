@@ -554,10 +554,11 @@ static ssize_t mtp_read(struct file *fp, char __user *buf,
 	spin_unlock_irq(&dev->lock);
 
 	
-	if (count > MTP_BULK_BUFFER_SIZE) {
+	 if (count > MTP_BULK_BUFFER_SIZE) {
 		file_xfer_zlp_flag = 1;
-		
+#ifdef CONFIG_PERFLOCK		
 		mtp_qos_enable(1);
+#endif
 	}
 
 	while (count > 0) {
