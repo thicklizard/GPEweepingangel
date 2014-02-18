@@ -543,6 +543,9 @@ int monarudo_mdp_gamma(void)
 
 static struct msm_panel_common_pdata mdp_pdata = {
 	.gpio = MDP_VSYNC_GPIO,
+	.mdp_core_clk_rate = 200000000,
+	.mdp_core_clk_table = mdp_core_clk_rate_table,
+	.num_mdp_clk = ARRAY_SIZE(mdp_core_clk_rate_table),
 #ifdef CONFIG_MSM_BUS_SCALING
 	.mdp_bus_scale_table = &mdp_bus_scale_pdata,
 #endif
@@ -982,10 +985,36 @@ static void monarudo_display_off(struct msm_fb_data_type *mfd)
 #define BRI_SETTING_DEF                 142
 #define BRI_SETTING_MAX                 255
 
+static unsigned char monarudo_shrink_pwm(int val)
+{
+	unsigned char shrink_br = BRI_SETTING_MAX;
+
+	if (val <= 0) {
+		shrink_br = 0;
+	} else if (val > 0 && (val < BRI_SETTING_MIN)) {
+		shrink_br = PWM_MIN;
+	} else if ((val >= BRI_SETTING_MIN) && (val <= BRI_SETTING_DEF)) {
+		shrink_br = (val - BRI_SETTING_MIN) * (PWM_DEFAULT - PWM_MIN) /
+		(BRI_SETTING_DEF - BRI_SETTING_MIN) + PWM_MIN;
+	} else if (val > BRI_SETTING_DEF && val <= BRI_SETTING_MAX) {
+		shrink_br = (val - BRI_SETTING_DEF) * (PWM_MAX - PWM_DEFAULT) /
+		(BRI_SETTING_MAX - BRI_SETTING_DEF) + PWM_DEFAULT;
+	} else if (val > BRI_SETTING_MAX)
+		shrink_br = PWM_MAX;
+
+	PR_DISP_INFO("brightness orig=%d, transformed=%d\n", val, shrink_br);
+
+	return shrink_br;
+}
 
 static void monarudo_set_backlight(struct msm_fb_data_type *mfd)
 {
 	int rc;
+
+	if (mdp4_overlay_dsi_state_get() <= ST_DSI_SUSPEND) {
+		return;
+	}
+	write_display_brightness[2] = monarudo_shrink_pwm((unsigned char)(mfd->bl_level));
 
 	if (resume_blk) {
 		resume_blk = 0;

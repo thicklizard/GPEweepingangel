@@ -785,7 +785,7 @@ static void mclk_switch(int camera_id)
 	}
 }
 
-#ifdef CONFIG_IMX175
+
 static int monarudo_imx175_ov8838_vreg_on(void)
 {
 	int rc;
@@ -1047,7 +1047,7 @@ struct msm_camera_device_platform_data monarudo_msm_camera_csi_device_data[] = {
 	},
 };
 #endif
-#endif	
+
 #if defined(CONFIG_AD5823_ACT)
 #if (defined(CONFIG_IMX175) || defined(CONFIG_IMX091))
 static struct i2c_board_info ad5823_actuator_i2c_info = {
@@ -2809,9 +2809,11 @@ void __init monarudo_init_cam(void)
 				ARRAY_SIZE(monarudo_cam_common_configs_xc));
 	}
 
-	 if (system_rev >= XC) {	
+	if (system_rev == XA || system_rev == XB) {
+		platform_device_register(&monarudo_msm_rawchip_device);
+	} else if (system_rev >= XC) {	
 		pr_info("system_rev=xc,monarudo_msm_rawchip_device_xc");
-		//platform_device_register(&monarudo_msm_rawchip_device_xc);
+		platform_device_register(&monarudo_msm_rawchip_device_xc);
 	}
 	
 	platform_device_register(&msm_camera_server);
