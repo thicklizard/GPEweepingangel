@@ -8,37 +8,29 @@
  * published by the Free Software Foundation.
  */
 
-#ifndef _ASM_NEON_H
-#define _ASM_NEON_H
+#include <asm/hwcap.h>
+
+#define cpu_has_neon()		(!!(elf_hwcap & HWCAP_NEON))
+
+#ifdef __ARM_NEON__
 
 /*
- * The GCC support header file for NEON intrinsics, <arm_neon.h>, does an
- * unconditional #include of <stdint.h>, assuming it will never be used outside
- * a C99 conformant environment. Sadly, this is not the case for the kernel.
- * The only dependencies <arm_neon.h> has on <stdint.h> are the
- * uint[8|16|32|64]_t types, which the kernel defines in <linux/types.h>.
+ * If you are affected by the BUILD_BUG below, it probably means that you are
+ * using NEON code /and/ calling the kernel_neon_begin() function from the same
+ * compilation unit. To prevent issues that may arise from GCC reordering or
+ * generating(1) NEON instructions outside of these begin/end functions, the
+ * only supported way of using NEON code in the kernel is by isolating it in a
+ * separate compilation unit, and calling it from another unit from inside a
+ * kernel_neon_begin/kernel_neon_end pair.
+ *
+ * (1) Current GCC (4.7) might generate NEON instructions at O3 level if
+ *     -mpfu=neon is set.
  */
-#include <linux/types.h>
 
-/*
- * The GCC option -ffreestanding prevents GCC's internal <stdint.h> from
- * including the <stdint.h> system header, it will #include "stdint-gcc.h"
- * instead.
- */
-#if __STDC_HOSTED__ != 0
-#error You must compile with -ffreestanding to use NEON intrinsics
+#define kernel_neon_begin() \
+	BUILD_BUG_ON_MSG(1, "kernel_neon_begin() called from NEON code")
+
+#else
+void kernel_neon_begin(void);
 #endif
-
-/*
- * The type uintptr_t is typedef'ed to __UINTPTR_TYPE__ by "stdint-gcc.h".
- * However, the bare metal and GLIBC versions of GCC don't agree on the
- * definition of __UINTPTR_TYPE__. Bare metal agrees with the kernel
- * (unsigned long), but GCC for GLIBC uses 'unsigned int' instead.
- */
-#ifdef __linux__
-#undef __UINTPTR_TYPE__
-#endif
-
-#include <arm_neon.h>
-
-#endif
+void kernel_neon_end(void);
