@@ -32,18 +32,24 @@
 #define INTELLI_PLUG_MAJOR_VERSION	2
 #define INTELLI_PLUG_MINOR_VERSION	0
 
-#define DEF_SAMPLING_MS			(1000)
+#define DEF_SAMPLING_MS			(700)
 #define BUSY_SAMPLING_MS		(500)
 
 #define DUAL_CORE_PERSISTENCE		5
 #define RQ_VALUE_ARRAY_DIM		10
-#define QUAD_CORE_PERSISTENCE		1
+#define BUSY_PERSISTENCE		10
+#define QUAD_CORE_PERSISTENCE		5
+
+enum {
+	INTELLI_PLUG_DOWN,
+	INTELLI_PLUG_UP,
+};
 
 static DEFINE_MUTEX(intelli_plug_mutex);
 
 struct delayed_work intelli_plug_work;
 
-static unsigned int intelli_plug_active = 1;
+static unsigned int intelli_plug_active = 0;
 module_param(intelli_plug_active, uint, 0644);
 
 static unsigned int eco_mode_active = 0;
@@ -56,13 +62,24 @@ static unsigned int busy_persist_count = 0;
 
 static bool suspended = false;
 
-static unsigned int NwNs_Threshold = 11;
+static unsigned int NwNs_Threshold = 6;
+
+struct intelli_plug_cpudata_t {
+	struct mutex suspend_mutex;
+	int online;
+	bool device_suspended;
+	cputime64_t on_time;
+	unsigned int max;
+	bool cpu_sleeping;
+};
+
+static DEFINE_PER_CPU(struct intelli_plug_cpudata_t, intelli_plug_cpudata);
 
 #define NR_FSHIFT	3
 static unsigned int nr_fshift = NR_FSHIFT;
 module_param(nr_fshift, uint, 0644);
 
-static unsigned int rq_values[10] = {6};
+static unsigned int rq_values[8] = {140, 0, 140, 190, 140, 190, 0, 190};
 
 static int calc_rq_avg(int last_rq_depth) {
 	int i, max = 0;
@@ -86,7 +103,7 @@ static int calc_rq_avg(int last_rq_depth) {
 
 		if(rq_values[i] > max) {
 			max = rq_values[i];
-			if(i > RQ_VALUE_ARRAY_DIM/2) {
+			if(i > RQ_VALUE_ARRAY_DIM/4) {
 				max_is_new = true;
 			}
 			else {
@@ -94,8 +111,8 @@ static int calc_rq_avg(int last_rq_depth) {
 			}
 		}
 	}
-	avg_down /= RQ_VALUE_ARRAY_DIM/2;
-	avg_up /= RQ_VALUE_ARRAY_DIM/2;
+	avg_down /= RQ_VALUE_ARRAY_DIM/4;
+	avg_up /= RQ_VALUE_ARRAY_DIM/4;
 
 	if(avg_down < avg_up && max_is_new == false) return avg_down;
 	else return avg_up;
@@ -136,7 +153,10 @@ static int mp_decision(void)
 
 static void __cpuinit intelli_plug_work_fn(struct work_struct *work)
 {
-	int decision = 0;
+	int state = 0;
+	int cpu = nr_cpu_ids;
+	cputime64_t on_time = 0;
+	int i;
 	
 	if (intelli_plug_active == 1) {
 #ifdef DEBUG_INTELLI_PLUG
@@ -145,25 +165,32 @@ static void __cpuinit intelli_plug_work_fn(struct work_struct *work)
 		// detect artificial loads or constant loads
 		// using msm rqstats
 
-			decision = mp_decision();
-			
-		if (!suspended) {
-	if (decision == 1) {
-				cpu_up(1);
-				sampling_time = BUSY_SAMPLING_MS;
-			} else
-	if (decision == 2) {
-				cpu_up(2);
-				sampling_time = BUSY_SAMPLING_MS;
-			} else
-	if (decision == 3) {
-				cpu_up(3);
-				sampling_time = BUSY_SAMPLING_MS;
-			} else if(decision == 0){
-				cpu_down(3);
-				sampling_time = DEF_SAMPLING_MS;
+			state = mp_decision();
+	switch (state) {
+	case INTELLI_PLUG_UP:
+		cpu = cpumask_next_zero(0, cpu_online_mask);
+		if (cpu < nr_cpu_ids) {
+			if ((per_cpu(intelli_plug_cpudata, cpu).online == false) && (!cpu_online(cpu))) {
+				cpu_up(cpu);
+				per_cpu(intelli_plug_cpudata, cpu).online = true;
+				per_cpu(intelli_plug_cpudata, cpu).on_time = ktime_to_ms(ktime_get());
+
+			} else {
+				 if (per_cpu(intelli_plug_cpudata, cpu).online != cpu_online(cpu)) {
+			}
+	}
+	break;
+case INTELLI_PLUG_DOWN:
+		if (cpu < nr_cpu_ids) {
+			if ((per_cpu(intelli_plug_cpudata, cpu).online == true) && (cpu_online(cpu))) {
+				cpu_down(i);
+				per_cpu(intelli_plug_cpudata, cpu).online = false;
+				on_time = ktime_to_ms(ktime_get()) - per_cpu(intelli_plug_cpudata, cpu).on_time;
+		} else {
+			 if (per_cpu(intelli_plug_cpudata, cpu).online != cpu_online(cpu)) {
 			}
 		}
+	break;
 #ifdef DEBUG_INTELLI_PLUG
 		else
 			pr_info("intelli_plug is suspened!\n");
@@ -171,7 +198,10 @@ static void __cpuinit intelli_plug_work_fn(struct work_struct *work)
 	}
 	schedule_delayed_work_on(0, &intelli_plug_work,
 		msecs_to_jiffies(sampling_time));
+	}
 }
+
+return;
 
 #ifdef CONFIG_POWERSUSPEND
 static void intelli_plug_suspend(struct power_suspend *handler)
@@ -217,7 +247,8 @@ static struct power_suspend intelli_plug_power_suspend_driver = {
 	.resume = intelli_plug_resume,
 };
 #endif  /* CONFIG_POWERSUSPEND */
-
+	}
+}
 static void intelli_plug_input_event(struct input_handle *handle,
 		unsigned int type, unsigned int code, int value)
 {
