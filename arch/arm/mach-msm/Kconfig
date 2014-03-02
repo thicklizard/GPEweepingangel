@@ -2901,9 +2901,11 @@ config IO_FOOTPRINT
 	help
 	  Provides support for light-weight tracing of CPU register read/write
 
-config INTELLI_PLUG
- 	bool "intelli_plug by faux123, Modified by thicklizard"
-
+config BADSEED_PLUG
+ 	bool "Badseed_plug by thicklizard"
+	help
+	 Based off ideas from Faux123, this is an intelligent hotplug driver
+  
 config BT_WBS_BRCM
         bool "BRCM HFP WBS support"
         depends on BT

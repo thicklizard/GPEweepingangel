@@ -1,7 +1,7 @@
 /*
- * Author: Paul Reioux aka Faux123 <reioux@gmail.com>
- * Modifications by Thicklizard for M7
- * Copyright 2012 Paul Reioux
+ * Author: Thicklizard <thicklizard@gmail.com>
+ * based off ideas of Faux123's intelli_plug
+ * Copyright 2014 thicklizard
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -26,13 +26,13 @@
 #include <linux/powersuspend.h>
 #endif
 
-//#define DEBUG_INTELLI_PLUG
-#undef DEBUG_INTELLI_PLUG
+//#define DEBUG_badseed_plug
+#undef DEBUG_badseed_plug
 
-#define INTELLI_PLUG_MAJOR_VERSION	2
-#define INTELLI_PLUG_MINOR_VERSION	0
+#define badseed_plug_MAJOR_VERSION	1
+#define badseed_plug_MINOR_VERSION	0
 
-#define DEF_SAMPLING_MS			(700)
+#define DEF_SAMPLING_MS			(1000)
 #define BUSY_SAMPLING_MS		(500)
 
 #define DUAL_CORE_PERSISTENCE		5
@@ -41,16 +41,16 @@
 #define QUAD_CORE_PERSISTENCE		5
 
 enum {
-	INTELLI_PLUG_DOWN,
-	INTELLI_PLUG_UP,
+	badseed_plug_DOWN,
+	badseed_plug_UP,
 };
 
-static DEFINE_MUTEX(intelli_plug_mutex);
+static DEFINE_MUTEX(badseed_plug_mutex);
 
-struct delayed_work intelli_plug_work;
+struct delayed_work badseed_plug_work;
 
-static unsigned int intelli_plug_active = 0;
-module_param(intelli_plug_active, uint, 0644);
+static unsigned int badseed_plug_active = 0;
+module_param(badseed_plug_active, uint, 0644);
 
 static unsigned int eco_mode_active = 0;
 module_param(eco_mode_active, uint, 0644);
@@ -62,9 +62,9 @@ static unsigned int busy_persist_count = 0;
 
 static bool suspended = false;
 
-static unsigned int NwNs_Threshold = 6;
+static unsigned int NwNs_Threshold = 10;
 
-struct intelli_plug_cpudata_t {
+struct badseed_plug_cpudata_t {
 	struct mutex suspend_mutex;
 	int online;
 	bool device_suspended;
@@ -73,7 +73,7 @@ struct intelli_plug_cpudata_t {
 	bool cpu_sleeping;
 };
 
-static DEFINE_PER_CPU(struct intelli_plug_cpudata_t, intelli_plug_cpudata);
+static DEFINE_PER_CPU(struct badseed_plug_cpudata_t, badseed_plug_cpudata);
 
 #define NR_FSHIFT	3
 static unsigned int nr_fshift = NR_FSHIFT;
@@ -151,15 +151,15 @@ static int mp_decision(void)
 	return new_state;
 }
 
-static void __cpuinit intelli_plug_work_fn(struct work_struct *work)
+static void __cpuinit badseed_plug_work_fn(struct work_struct *work)
 {
 	int state = 0;
 	int cpu = nr_cpu_ids;
 	cputime64_t on_time = 0;
 	int i;
 	
-	if (intelli_plug_active == 1) {
-#ifdef DEBUG_INTELLI_PLUG
+	if (badseed_plug_active == 1) {
+#ifdef DEBUG_badseed_plug
 		pr_info("nr_run_stat: %u\n", nr_run_stat);
 #endif
 		// detect artificial loads or constant loads
@@ -167,36 +167,37 @@ static void __cpuinit intelli_plug_work_fn(struct work_struct *work)
 
 			state = mp_decision();
 	switch (state) {
-	case INTELLI_PLUG_UP:
+	case badseed_plug_UP:
 		cpu = cpumask_next_zero(0, cpu_online_mask);
 		if (cpu < nr_cpu_ids) {
-			if ((per_cpu(intelli_plug_cpudata, cpu).online == false) && (!cpu_online(cpu))) {
+			if ((per_cpu(badseed_plug_cpudata, cpu).online == false) && (!cpu_online(cpu))) {
 				cpu_up(cpu);
-				per_cpu(intelli_plug_cpudata, cpu).online = true;
-				per_cpu(intelli_plug_cpudata, cpu).on_time = ktime_to_ms(ktime_get());
+				per_cpu(badseed_plug_cpudata, cpu).online = true;
+				per_cpu(badseed_plug_cpudata, cpu).on_time = ktime_to_ms(ktime_get());
 
 			} else {
-				 if (per_cpu(intelli_plug_cpudata, cpu).online != cpu_online(cpu)) {
+				 if (per_cpu(badseed_plug_cpudata, cpu).online != cpu_online(cpu)) {
 			}
 	}
 	break;
-case INTELLI_PLUG_DOWN:
-		if (cpu < nr_cpu_ids) {
-			if ((per_cpu(intelli_plug_cpudata, cpu).online == true) && (cpu_online(cpu))) {
-				cpu_down(i);
-				per_cpu(intelli_plug_cpudata, cpu).online = false;
-				on_time = ktime_to_ms(ktime_get()) - per_cpu(intelli_plug_cpudata, cpu).on_time;
+case badseed_plug_DOWN:
+		if (cpu > nr_cpu_ids) {
+			if ((per_cpu(badseed_plug_cpudata, cpu).online == true) && (cpu_online(cpu))) {
+				for (i = 3; i > 0; i--)
+						cpu_down(i);
+				per_cpu(badseed_plug_cpudata, cpu).online = false;
+				on_time = ktime_to_ms(ktime_get()) - per_cpu(badseed_plug_cpudata, cpu).on_time;
 		} else {
-			 if (per_cpu(intelli_plug_cpudata, cpu).online != cpu_online(cpu)) {
+			 if (per_cpu(badseed_plug_cpudata, cpu).online != cpu_online(cpu)) {
 			}
 		}
 	break;
-#ifdef DEBUG_INTELLI_PLUG
+#ifdef DEBUG_badseed_plug
 		else
-			pr_info("intelli_plug is suspened!\n");
+			pr_info("badseed_plug is suspened!\n");
 #endif
 	}
-	schedule_delayed_work_on(0, &intelli_plug_work,
+	schedule_delayed_work_on(0, &badseed_plug_work,
 		msecs_to_jiffies(sampling_time));
 	}
 }
@@ -204,30 +205,30 @@ case INTELLI_PLUG_DOWN:
 return;
 
 #ifdef CONFIG_POWERSUSPEND
-static void intelli_plug_suspend(struct power_suspend *handler)
+static void badseed_plug_suspend(struct power_suspend *handler)
 {
 	int i;
 	int num_of_active_cores = 4;
 	
-	cancel_delayed_work_sync(&intelli_plug_work);
+	cancel_delayed_work_sync(&badseed_plug_work);
 
-	mutex_lock(&intelli_plug_mutex);
+	mutex_lock(&badseed_plug_mutex);
 	suspended = true;
-	mutex_unlock(&intelli_plug_mutex);
+	mutex_unlock(&badseed_plug_mutex);
 
 	cpu_down(1);
 }
 
-static void __cpuinit intelli_plug_resume(struct power_suspend *handler)
+static void __cpuinit badseed_plug_resume(struct power_suspend *handler)
 {
 	int num_of_active_cores;
 	int i;
 
-	mutex_lock(&intelli_plug_mutex);
+	mutex_lock(&badseed_plug_mutex);
 	/* keep cores awake long enough for faster wake up */
 	persist_count = DUAL_CORE_PERSISTENCE;
 	suspended = false;
-	mutex_unlock(&intelli_plug_mutex);
+	mutex_unlock(&badseed_plug_mutex);
 
 	/* wake up everyone */
 	if (eco_mode_active)
@@ -238,29 +239,29 @@ static void __cpuinit intelli_plug_resume(struct power_suspend *handler)
 		cpu_up(3);
 	}
 
-	schedule_delayed_work_on(0, &intelli_plug_work,
+	schedule_delayed_work_on(0, &badseed_plug_work,
 		msecs_to_jiffies(10));
 }
 
-static struct power_suspend intelli_plug_power_suspend_driver = {
-	.suspend = intelli_plug_suspend,
-	.resume = intelli_plug_resume,
+static struct power_suspend badseed_plug_power_suspend_driver = {
+	.suspend = badseed_plug_suspend,
+	.resume = badseed_plug_resume,
 };
 #endif  /* CONFIG_POWERSUSPEND */
 	}
 }
-static void intelli_plug_input_event(struct input_handle *handle,
+static void badseed_plug_input_event(struct input_handle *handle,
 		unsigned int type, unsigned int code, int value)
 {
-#ifdef DEBUG_INTELLI_PLUG
-	pr_info("intelli_plug touched!\n");
+#ifdef DEBUG_badseed_plug
+	pr_info("badseed_plug touched!\n");
 #endif
 
-	cancel_delayed_work(&intelli_plug_work);
+	cancel_delayed_work(&badseed_plug_work);
 
 	sampling_time = BUSY_SAMPLING_MS;
 
-        schedule_delayed_work_on(0, &intelli_plug_work,
+        schedule_delayed_work_on(0, &badseed_plug_work,
                 msecs_to_jiffies(sampling_time));
 }
 
@@ -281,7 +282,7 @@ static int input_dev_filter(const char *input_dev_name)
 	}
 }
 
-static int intelli_plug_input_connect(struct input_handler *handler,
+static int badseed_plug_input_connect(struct input_handler *handler,
 		struct input_dev *dev, const struct input_device_id *id)
 {
 	struct input_handle *handle;
@@ -296,7 +297,7 @@ static int intelli_plug_input_connect(struct input_handler *handler,
 
 	handle->dev = dev;
 	handle->handler = handler;
-	handle->name = "intelliplug";
+	handle->name = "badseed";
 
 	error = input_register_handle(handle);
 	if (error)
@@ -314,54 +315,54 @@ err2:
 	return error;
 }
 
-static void intelli_plug_input_disconnect(struct input_handle *handle)
+static void badseed_plug_input_disconnect(struct input_handle *handle)
 {
 	input_close_device(handle);
 	input_unregister_handle(handle);
 	kfree(handle);
 }
 
-static const struct input_device_id intelli_plug_ids[] = {
+static const struct input_device_id badseed_plug_ids[] = {
 	{ .driver_info = 1 },
 	{ },
 };
 
-static struct input_handler intelli_plug_input_handler = {
-	.event          = intelli_plug_input_event,
-	.connect        = intelli_plug_input_connect,
-	.disconnect     = intelli_plug_input_disconnect,
-	.name           = "intelliplug_handler",
-	.id_table       = intelli_plug_ids,
+static struct input_handler badseed_plug_input_handler = {
+	.event          = badseed_plug_input_event,
+	.connect        = badseed_plug_input_connect,
+	.disconnect     = badseed_plug_input_disconnect,
+	.name           = "badseed_handler",
+	.id_table       = badseed_plug_ids,
 };
 
-int __init intelli_plug_init(void)
+int __init badseed_plug_init(void)
 {
 	int rc;
 
-	//pr_info("intelli_plug: scheduler delay is: %d\n", delay);
-	pr_info("intelli_plug: version %d.%d by thick\n",
-		 INTELLI_PLUG_MAJOR_VERSION,
-		 INTELLI_PLUG_MINOR_VERSION);
+	//pr_info("badseed_plug: scheduler delay is: %d\n", delay);
+	pr_info("badseed_plug: version %d.%d by thick\n",
+		 badseed_plug_MAJOR_VERSION,
+		 badseed_plug_MINOR_VERSION);
 
 	sampling_time = DEF_SAMPLING_MS;
 
-	rc = input_register_handler(&intelli_plug_input_handler);
+	rc = input_register_handler(&badseed_plug_input_handler);
 #ifdef CONFIG_POWERSUSPEND
-	register_power_suspend(&intelli_plug_power_suspend_driver);
+	register_power_suspend(&badseed_plug_power_suspend_driver);
 #endif
 
-	INIT_DELAYED_WORK(&intelli_plug_work, intelli_plug_work_fn);
-	schedule_delayed_work_on(0, &intelli_plug_work,
+	INIT_DELAYED_WORK(&badseed_plug_work, badseed_plug_work_fn);
+	schedule_delayed_work_on(0, &badseed_plug_work,
 		msecs_to_jiffies(sampling_time));
 
 	return 0;
 }
 
-MODULE_AUTHOR("Paul Reioux <reioux@gmail.com>");
-MODULE_DESCRIPTION("'intell_plug' - An intelligent cpu hotplug driver for "
+MODULE_AUTHOR("Thicklizard <thicklizard@gmail.com>");
+MODULE_DESCRIPTION("'badseed_plug' - An intelligent cpu hotplug driver for "
 	"Low Latency Frequency Transition capable processors");
 MODULE_LICENSE("GPL");
 
-late_initcall(intelli_plug_init);
+late_initcall(badseed_plug_init);
 
 
