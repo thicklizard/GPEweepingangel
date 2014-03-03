@@ -2875,6 +2875,12 @@ config CPU_OC
         help
          To add support for overclocked cpu.
 
+config GPU_OC
+        bool "OC GPU"
+	default n
+        help
+         To add support for overclocked gpu.
+
 config FORCE_FAST_CHARGE
 	bool "Force AC charge mode at will"
 	default y
