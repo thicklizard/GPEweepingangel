@@ -49,7 +49,7 @@ static DEFINE_MUTEX(badseed_plug_mutex);
 
 struct delayed_work badseed_plug_work;
 
-static unsigned int badseed_plug_active = 0;
+static unsigned int badseed_plug_active = 1;
 module_param(badseed_plug_active, uint, 0644);
 
 static unsigned int eco_mode_active = 0;
