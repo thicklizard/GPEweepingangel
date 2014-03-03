@@ -30,7 +30,7 @@
 #undef DEBUG_badseed_plug
 
 #define badseed_plug_MAJOR_VERSION	1
-#define badseed_plug_MINOR_VERSION	0
+#define badseed_plug_MINOR_VERSION	1
 
 #define DEF_SAMPLING_MS			(1000)
 #define BUSY_SAMPLING_MS		(500)
@@ -62,7 +62,7 @@ static unsigned int busy_persist_count = 0;
 
 static bool suspended = false;
 
-static unsigned int NwNs_Threshold = 10;
+static unsigned int NwNs_Threshold[8] = {12, 0, 25, 20, 32, 28, 0, 35};
 
 struct badseed_plug_cpudata_t {
 	struct mutex suspend_mutex;
@@ -94,7 +94,7 @@ static int calc_rq_avg(int last_rq_depth) {
 	rq_values[RQ_VALUE_ARRAY_DIM-1] = last_rq_depth;
 
 	for(i = 0;i < RQ_VALUE_ARRAY_DIM;i++) {
-		if(i <= RQ_VALUE_ARRAY_DIM/2) {
+		if(i <= RQ_VALUE_ARRAY_DIM/4) {
 			avg_down += rq_values[i];
 		}
 		else {
@@ -123,6 +123,7 @@ static int mp_decision(void)
 	static bool first_call = true;
 	int new_state = 0;
 	int nr_cpu_online;
+	int index;
 	int rq_depth;
 	static cputime64_t last_time;
 	cputime64_t current_time;
@@ -139,7 +140,7 @@ static int mp_decision(void)
 	//pr_info(" rq_deptch = %u", rq_depth);
 	nr_cpu_online = num_online_cpus();
 
-	if(nr_cpu_online == 1 && rq_depth >= NwNs_Threshold) {
+	if ((nr_cpu_online < 4) && (rq_depth >= NwNs_Threshold[index])) {
 		new_state = 1;
 	}
 	else if(nr_cpu_online == 4 && rq_depth >= QUAD_CORE_PERSISTENCE) {
@@ -155,6 +156,7 @@ static void __cpuinit badseed_plug_work_fn(struct work_struct *work)
 {
 	int state = 0;
 	int cpu = nr_cpu_ids;
+	int num_of_active_cores = 4;
 	cputime64_t on_time = 0;
 	int i;
 	
@@ -181,10 +183,15 @@ static void __cpuinit badseed_plug_work_fn(struct work_struct *work)
 	}
 	break;
 case badseed_plug_DOWN:
-		if (cpu > nr_cpu_ids) {
+		if (cpu < nr_cpu_ids) {
 			if ((per_cpu(badseed_plug_cpudata, cpu).online == true) && (cpu_online(cpu))) {
-				for (i = 3; i > 0; i--)
+				if (persist_count > 0)
+					persist_count--;
+				if (persist_count == 0) {
+					//take down everyone
+					for (i = 3; i > 0; i--)
 						cpu_down(i);
+				}
 				per_cpu(badseed_plug_cpudata, cpu).online = false;
 				on_time = ktime_to_ms(ktime_get()) - per_cpu(badseed_plug_cpudata, cpu).on_time;
 		} else {
