@@ -124,8 +124,8 @@ struct tabla_codec_dai_data {
 #define TABLA_ACQUIRE_LOCK(x) do { mutex_lock(&x); } while (0)
 #define TABLA_RELEASE_LOCK(x) do { mutex_unlock(&x); } while (0)
 
-static const DECLARE_TLV_DB_SCALE(digital_gain, 0, 1, 0);
-static const DECLARE_TLV_DB_SCALE(line_gain, 0, 7, 1);
+static const DECLARE_TLV_DB_SCALE(digital_gain, 0, 7, 0);
+static const DECLARE_TLV_DB_SCALE(line_gain, 0, 19, 1);
 static const DECLARE_TLV_DB_SCALE(analog_gain, 0, 25, 1);
 static struct snd_soc_dai_driver tabla_dai[];
 static const DECLARE_TLV_DB_SCALE(aux_pga_gain, 0, 2, 0);
@@ -414,6 +414,7 @@ static int tabla_codec_enable_charge_pump(struct snd_soc_dapm_widget *w,
 	pr_debug("%s %d\n", __func__, event);
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
+		msleep(15);
 		snd_soc_update_bits(codec, TABLA_A_CDC_CLK_OTHR_CTL, 0x01,
 			0x01);
 		snd_soc_update_bits(codec, TABLA_A_CDC_CLSG_CTL, 0x08, 0x08);
@@ -2996,8 +2997,8 @@ static int tabla_codec_reset_interpolator(struct snd_soc_dapm_widget *w,
 				  snd_soc_read(codec,
 				  rx_digital_gain_reg[w->shift])
 				  );
-				snd_soc_write(codec, rx_digital_gain_reg[0], 12);
-				snd_soc_write(codec, rx_digital_gain_reg[1], 12);
+				snd_soc_write(codec, rx_digital_gain_reg[0], 15);
+				snd_soc_write(codec, rx_digital_gain_reg[1], 15);
 		break;
 	}
 	return 0;
