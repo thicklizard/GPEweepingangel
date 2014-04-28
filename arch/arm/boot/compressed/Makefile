@@ -16,6 +16,7 @@ OBJS		+= mmcif-sh7372.o
 endif
 endif
 
+
 AFLAGS_head.o := -DTEXT_OFFSET=$(TEXT_OFFSET)
 AFLAGS_head.o += -Wa,-march=armv7-a$(plus_sec)
 HEAD = head.o
@@ -23,8 +24,12 @@ HEAD = head.o
 AFLAGS_misc.o +=-Wa,-march=armv7-a$(plus_sec)
 MISC = misc.o
 
-AFLAGS_decompress.o += -Wa,-march=armv7-a$(plus_sec)
-DECOMPRESS = decompress.o
+AFLAGS_head.o += -DTEXT_OFFSET=$(TEXT_OFFSET)
+HEAD	= head.o
+OBJS	+= misc.o decompress.o
+ifeq ($(CONFIG_KERNEL_LZ4),y)
+CFLAGS_decompress.o := -Os
+endif
 
 FONTC	= $(srctree)/drivers/video/console/font_acorn_8x8.c
 
