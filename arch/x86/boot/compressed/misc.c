@@ -381,3 +381,4 @@ asmlinkage void decompress_kernel(void *rmode, memptr heap,
 		putstr("done.\nBooting the kernel.\n");
 	return;
 }
+
