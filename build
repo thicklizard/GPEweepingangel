@@ -1,0 +1,126 @@
+#!/bin/bash
+#switches
+USEPREBUILT=1;
+#sourcedir
+SOURCE_DIR="$(pwd)"
+#crosscompile stuff
+CROSSARCH="arm"
+CROSSCC="$CROSSARCH-eabi-"
+TOOLCHAIN="/home/thicklizard/android-toolchain-eabioptimized2/bin/arm-cortex_a15-linux-gnueabihf-"
+#our used directories
+PREBUILT="/home/thicklizard/m8kernel/prebuilt"
+OUT_DIR="$(pwd)/out"
+#compile neccesities
+CODENAME=""
+DEFCONFIG=$CODENAME"lizard_defconfig"
+NRJOBS=$(( $(nproc) * 2 ))
+
+
+echo "[BUILD]: ####################################";
+echo "[BUILD]: ####################################";
+echo "[BUILD]: ####################################";
+echo "[BUILD]: ####################################";
+
+OUT_ENABLED=1;
+if [ ! -d "$OUT_DIR" ]; then
+    echo "[BUILD]: Directory '$OUT_DIR' which is configure as output directory does not exist!";
+    VALID=0;
+    while [[ $VALID -eq 0 ]]
+    do
+        echo "[Y|y] Create it.";
+        echo "[N|n] Don't create it, this will disable the output directory.";
+        echo "Choose an option:";
+        read DECISION;
+        case "$DECISION" in
+            y|Y)
+            VALID=1;
+            echo "Creating directory...";
+            mkdir $OUT_DIR
+            mkdir $OUT_DIR/kernel
+            mkdir $OUT_DIR/modules
+            ;;
+            n|N)
+            VALID=1;
+            OUT_ENABLED=0;
+            echo "Disabling output directory...";
+            ;;
+            *)
+            echo "Error: Unknown input ($DECISION), try again.";
+        esac
+    done
+else
+    if [ ! -d "$OUT_DIR/kernel" ]; then
+        mkdir $OUT_DIR/kernel
+    fi
+    if [ ! -d "$OUT_DIR/modules" ]; then
+        mkdir $OUT_DIR/modules
+    fi
+fi
+
+
+
+echo "[BUILD]: Setting cross compile env vars...";
+export ARCH=$CROSSARCH
+export CROSS_COMPILE=$CROSSCC
+export PATH=$TOOLCHAIN_CCACHE:${PATH}:$TOOLCHAIN
+
+gotosource() {
+  echo "[BUILD]: Changing directory to $SOURCE_DIR...";
+  cd $SOURCE_DIR
+}
+
+gotoout() {
+    if [[ ! $OUT_ENABLED -eq 0 ]]; then
+        echo "[BUILD]: Changing directory to $OUT_DIR...";
+        cd $OUT_DIR;
+    fi
+}
+
+gotosource
+
+#saving new rev
+REV=$(git log --pretty=format:'%h' -n 1)
+echo "[BUILD]: Saved current hash as revision: $REV...";
+#date of build
+DATE=$(date +%Y%m%d_%H%M%S)
+echo "[BUILD]: Start of build: $DATE...";
+
+#build the kernel
+echo "[BUILD]: Bulding the kernel...";
+make -j12 ARCH=arm CROSS_COMPILE=/home/thicklizard/android-toolchain-eabioptimized/bin/arm-cortex_a15-linux-gnueabihf-
+
+echo "[BUILD]: Done!...";
+
+if [[ ! $OUT_ENABLED -eq 0 ]]; then
+    gotoout
+    #prepare our zip structure
+    echo "[BUILD]: Cleaning out directory...";
+    find $OUT_DIR/* -maxdepth 0 ! -name '*.zip' ! -name '*.md5' ! -name '*.sha1' ! -name kernel ! -name modules ! -name out -exec rm -rf '{}' ';'
+    if [ ! $USEPREBUILT -eq 0 ]; then
+        if [ -d "$PREBUILT" ]; then
+            echo "[BUILD]: Copying prebuilts to out directory...";
+            cp -R $PREBUILT/* $OUT_DIR/
+        fi
+    fi
+    gotosource
+
+    #copy stuff for our zip
+    echo "[BUILD]: Copying kernel (zImage) to $OUT_DIR/kernel/...";
+    cp arch/arm/boot/zImage $OUT_DIR/kernel/
+    echo "[BUILD]: Copying modules (*.ko) to $OUT_DIR/modules/...";
+    find $SOURCE_DIR/ -name \*.ko -exec cp '{}' $OUT_DIR/modules/ ';'
+    echo "[BUILD]: Done!...";
+
+    gotoout
+
+    #create zip and clean folder
+    echo "[BUILD]: Creating zip: kernel_"$CODENAME"_"$DATE"_"$BRANCH"-"$REV".zip ...";
+    zip -r kernel_"$CODENAME"_"$DATE"_"$BRANCH"-"$REV".zip . -x "*.zip" "*.sha1" "*.md5"
+    echo "[BUILD]: Cleaning out directory...";
+    find $OUT_DIR/* -maxdepth 0 ! -name '*.zip' ! -name '*.md5' ! -name '*.sha1' ! -name out -exec rm -rf '{}' ';'
+    echo "[BUILD]: Done!...";
+   fi
+
+echo "[BUILD]: All done!...";
+gotosource
+
