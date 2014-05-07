@@ -50,8 +50,6 @@ extern void error(char *);
 #endif
 
 #ifdef CONFIG_KERNEL_LZ4
-#define memmove memmove
-#define memcpy memcpy
 #include "../../../../lib/decompress_unlz4.c"
 #endif
 
