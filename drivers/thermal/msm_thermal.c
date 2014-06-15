@@ -34,7 +34,7 @@
 #define N_TEMP_LIMITS	4
 
 static unsigned temp_hysteresis = 5;
-static unsigned int limit_temp_degC[N_TEMP_LIMITS] = { 63, 68, 75, 85 };
+static unsigned int limit_temp_degC[N_TEMP_LIMITS] = { 60, 65, 72, 80 };
 static unsigned int limit_freq[N_TEMP_LIMITS] = { 1728000, 1350000, 918000, 384000 };
 
 module_param_array(limit_temp_degC, uint, NULL, 0644);
@@ -204,7 +204,7 @@ int __init msm_thermal_init(struct msm_thermal_data *pdata)
 	INIT_DELAYED_WORK(&first_work, check_temp);
 	INIT_WORK(&trip_work, check_temp);
 
-	schedule_delayed_work(&first_work, msecs_to_jiffies(5*1000)); 
+	schedule_delayed_work(&first_work, msecs_to_jiffies(3*1000)); 
 
 	return 0;
 }
