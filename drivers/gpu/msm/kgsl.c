@@ -29,6 +29,7 @@
 #include <linux/io.h>
 #include <mach/socinfo.h>
 #include <linux/mman.h>
+#include <linux/highmem.h>
 
 #include "kgsl.h"
 #include "kgsl_debugfs.h"
