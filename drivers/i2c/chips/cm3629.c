@@ -763,7 +763,7 @@ static int lightsensor_disable(struct cm3629_info *lpi);
 static void sensor_irq_do_work(struct work_struct *work)
 {
 	struct cm3629_info *lpi = lp_info;
-	uint8_t cmd[3] = {0, 0, 0};
+	uint8_t cmd[3];
 	uint8_t add = 0;
 	
 	_cm3629_I2C_Read2(lpi->cm3629_slave_address, INT_FLAG, cmd, 2);
@@ -2561,6 +2561,7 @@ int power_key_check_in_pocket(void)
 	D("[cm3629] %s ls_adc = %d, ls_level = %d, ls_dark %d\n", __func__, ls_adc, ls_level, ls_dark);
 
 	psensor_enable(lpi);
+	msleep(50);
 	ret = get_ps_adc_value(&ps1_adc, &ps2_adc);
 	if (ps1_adc > pocket_thd)
 		ps_near = 1;

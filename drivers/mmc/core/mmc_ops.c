@@ -430,7 +430,7 @@ int mmc_set_block_length(struct mmc_card *card, u32 length)
 	int err;
 	int retries = 3;
 	struct mmc_command cmd;
-	u32 status = 0;
+	u32 status;
 	unsigned long delay = jiffies + HZ;
 
 	BUG_ON(!card);
