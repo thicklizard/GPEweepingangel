@@ -52,6 +52,10 @@
 #define BTSCO_RATE_8KHZ 8000
 #define BTSCO_RATE_16KHZ 16000
 
+#define SAMPLING_RATE_48KHZ 48000
+#define SAMPLING_RATE_96KHZ 96000
+#define SAMPLING_RATE_192KHZ 192000
+
 #define BOTTOM_SPK_AMP_POS	0x1
 #define BOTTOM_SPK_AMP_NEG	0x2
 #define TOP_SPK_AMP_POS		0x4
@@ -1818,7 +1822,7 @@ static int msm_auxpcm_be_params_fixup(struct snd_soc_pcm_runtime *rtd,
 #ifdef CONFIG_BT_WBS_BRCM
 	rate->min = rate->max = 16000;
 #else
-	rate->min = rate->max = 8000;
+	rate->min = rate->max = 16000;
 #endif
 	channels->min = channels->max = 1;
 

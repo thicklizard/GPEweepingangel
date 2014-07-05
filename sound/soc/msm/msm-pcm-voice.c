@@ -42,9 +42,9 @@ static struct snd_pcm_hardware msm_pcm_hardware = {
 				SNDRV_PCM_INFO_PAUSE |
 				SNDRV_PCM_INFO_RESUME),
 	.formats =              SNDRV_PCM_FMTBIT_S16_LE,
-	.rates =                SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000,
+	.rates =                SNDRV_PCM_RATE_8000_192000 | SNDRV_PCM_RATE_16000,
 	.rate_min =             8000,
-	.rate_max =             16000,
+	.rate_max =             192000,
 	.channels_min =         1,
 	.channels_max =         1,
 

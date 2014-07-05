@@ -109,7 +109,7 @@ snd-soc-msm8974-objs := msm8974.o
 obj-$(CONFIG_SND_SOC_MSM8974) += snd-soc-msm8974.o
 
 snd-soc-qdsp6v2-objs := msm-dai-fe.o msm-dai-stub.o
-obj-$(CONFIG_SND_SOC_QDSP6V2) += snd-soc-qdsp6v2.o
+obj-$(CONFIG_SND_SOC_QDSP6V2) += snd-soc-qdsp6v2.o.
 
 #//HTC_AUD_START LPA5
 CFLAGS_msm-compr-q6.o := -DDEBUG

@@ -65,11 +65,13 @@ static struct kernel_param_ops param_ops_str = {
 
 module_param_cb(debug_mask, &param_ops_str, &debug_mask, S_IWUSR | S_IRUGO);
 
+/*
 #ifdef CONFIG_HTC_PNPMGR
 static int legacy_mode = 0;
 module_param_cb(legacy_mode, &param_ops_str, &legacy_mode, S_IWUSR | S_IRUGO);
 extern struct kobject *cpufreq_kobj;
 #endif
+*/
 
 static unsigned int get_perflock_speed(void);
 static unsigned int get_cpufreq_ceiling_speed(void);
@@ -198,11 +200,12 @@ int perflock_override(const struct cpufreq_policy *policy, const unsigned int ne
 	unsigned long irqflags;
 	unsigned int policy_min;
 	unsigned int policy_max;
-
+/*
 #ifdef CONFIG_HTC_PNPMGR
 	if (!legacy_mode)
 		return 0;
 #endif
+*/
 	if (policy != NULL) {
 		
 		if (strncmp("ondemand", policy->governor->name, 8) != 0)
@@ -445,6 +448,7 @@ void perf_lock(struct perf_lock *lock)
 		list_add(&lock->link, &active_cpufreq_ceiling_locks);
 	spin_unlock_irqrestore(&list_lock, irqflags);
 
+/*
 #ifdef CONFIG_HTC_PNPMGR
 	if (!legacy_mode) {
 		if (lock->type == TYPE_PERF_LOCK)
@@ -454,6 +458,7 @@ void perf_lock(struct perf_lock *lock)
 		return;
 	}
 #endif
+*/
 	for_each_online_cpu(cpu) {
 		queue_work_on(cpu, perflock_setrate_workqueue, &do_setrate_work);
 	}
@@ -499,6 +504,7 @@ void perf_unlock(struct perf_lock *lock)
 	else if (lock->type == TYPE_CPUFREQ_CEILING)
 		list_add(&lock->link, &inactive_cpufreq_ceiling_locks);
 	spin_unlock_irqrestore(&list_lock, irqflags);
+/*
 #ifdef CONFIG_HTC_PNPMGR
 	if (!legacy_mode) {
 		if (lock->type == TYPE_PERF_LOCK)
@@ -507,6 +513,7 @@ void perf_unlock(struct perf_lock *lock)
 			sysfs_notify(cpufreq_kobj, NULL, "perflock_scaling_max");
 	}
 #endif
+*/
 }
 EXPORT_SYMBOL(perf_unlock);
 
@@ -783,7 +790,7 @@ static int init_perf_lock(void)
 
 late_initcall(init_perf_lock);
 
-
+/*
 #ifdef CONFIG_HTC_PNPMGR
 ssize_t
 perflock_scaling_max_show(struct kobject *kobj, struct kobj_attribute *attr,
@@ -817,3 +824,4 @@ perflock_scaling_min_store(struct kobject *kobj, struct kobj_attribute *attr,
 	return 0;
 }
 #endif
+*/
