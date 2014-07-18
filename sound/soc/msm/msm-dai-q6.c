@@ -1566,12 +1566,12 @@ static struct snd_soc_dai_driver msm_dai_q6_afe_tx_dai = {
 
 static struct snd_soc_dai_driver msm_dai_q6_voice_playback_tx_dai = {
 	.playback = {
-		.rates = SNDRV_PCM_RATE_192000 | SNDRV_PCM_RATE_8000 |
+		.rates = SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_8000 |
 		SNDRV_PCM_RATE_16000,
 		.formats = SNDRV_PCM_FMTBIT_S16_LE,
 		.channels_min = 1,
 		.channels_max = 2,
-		.rate_max =     192000,
+		.rate_max =     48000,
 		.rate_min =     8000,
 	},
 	.ops = &msm_dai_q6_ops,

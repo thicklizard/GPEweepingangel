@@ -130,7 +130,7 @@
 #include <linux/himax_852xD.h>
 #endif
 
-#define MSM_PMEM_ADSP_SIZE         0x8600000
+#define MSM_PMEM_ADSP_SIZE         0x999C434
 #define MSM_PMEM_AUDIO_SIZE        0x568000
 #define MSM_PMEM_SIZE              0x0 
 
@@ -4131,10 +4131,10 @@ static struct platform_device msm_tsens_device = {
 
 static struct msm_thermal_data msm_thermal_pdata = {
 	.sensor_id = 0,
-	/* .poll_ms = 1000,
+	.poll_ms = 1000,
 	.limit_temp = 51,
 	.temp_hysteresis = 10,
-	.limit_freq = 918000,*/
+	.limit_freq = 918000,
 };
 
 static int __init check_dq_setup(char *str)
