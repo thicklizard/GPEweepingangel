@@ -175,8 +175,11 @@ void unlock_policy_rwsem_write(int cpu);
 extern void ondemand_boost_cpu(int boost);
 #endif
 
-extern DEFINE_PER_CPU(int, cpufreq_init_done);
+#ifdef CONFIG_CPU_FREQ_GOV_ONDEMANDPLUS
 
+#else
+extern DEFINE_PER_CPU(int, cpufreq_init_done);
+#endif
 
 #define CPUFREQ_RELATION_L 0  
 #define CPUFREQ_RELATION_H 1  
