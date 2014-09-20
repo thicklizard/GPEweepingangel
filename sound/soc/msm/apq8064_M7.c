@@ -52,10 +52,6 @@
 #define BTSCO_RATE_8KHZ 8000
 #define BTSCO_RATE_16KHZ 16000
 
-#define SAMPLING_RATE_48KHZ 48000
-#define SAMPLING_RATE_96KHZ 96000
-#define SAMPLING_RATE_192KHZ 192000
-
 #define BOTTOM_SPK_AMP_POS	0x1
 #define BOTTOM_SPK_AMP_NEG	0x2
 #define TOP_SPK_AMP_POS		0x4
@@ -1212,7 +1208,7 @@ static int msm_btsco_rate_put(struct snd_kcontrol *kcontrol,
 		msm_btsco_rate = BTSCO_RATE_16KHZ;
 		break;
 	default:
-		msm_btsco_rate = BTSCO_RATE_16KHZ;
+		msm_btsco_rate = BTSCO_RATE_8KHZ;
 		break;
 	}
 	pr_debug("%s: msm_btsco_rate = %d\n", __func__,
@@ -1640,8 +1636,6 @@ static int msm_slim_0_tx_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 			SNDRV_PCM_HW_PARAM_CHANNELS);
 
 	pr_debug("%s()\n", __func__);
-		param_set_mask(params, SNDRV_PCM_HW_PARAM_FORMAT,
-		SNDRV_PCM_FORMAT_S16_LE);
 	rate->min = rate->max = 48000;
 	channels->min = channels->max = msm_slim_0_tx_ch;
 
@@ -1699,7 +1693,7 @@ static int msm_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 	pr_debug("%s()\n", __func__);
 
 	param_set_mask(params, SNDRV_PCM_HW_PARAM_FORMAT,
-		SNDRV_PCM_FORMAT_S24_LE);
+		SNDRV_PCM_FORMAT_S16_LE);
 
 	rate->min = rate->max = 48000;
 

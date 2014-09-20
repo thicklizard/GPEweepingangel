@@ -38,7 +38,7 @@ static struct msm_voice voice_info[VOICE_SESSION_INDEX_MAX];
 
 static struct snd_pcm_hardware msm_pcm_hardware = {
 
-		.info =                 (SNDRV_PCM_INFO_INTERLEAVED|
+	.info =                 (SNDRV_PCM_INFO_INTERLEAVED|
 				SNDRV_PCM_INFO_PAUSE |
 				SNDRV_PCM_INFO_RESUME),
 	.formats =              SNDRV_PCM_FMTBIT_S16_LE,
