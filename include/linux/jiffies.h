@@ -100,7 +100,7 @@ static inline u64 get_jiffies_64(void)
 
 #define time_is_after_eq_jiffies(a) time_before_eq(jiffies, a)
 
-#define INITIAL_JIFFIES ((unsigned long)(unsigned int) (-300*HZ))
+#define INITIAL_JIFFIES ((unsigned long)(unsigned int) (-100*HZ))
 
 #define MAX_JIFFY_OFFSET ((LONG_MAX >> 1)-1)
 

@@ -67,7 +67,7 @@ int arch_update_cpu_topology(void);
 #define SD_SIBLING_INIT (struct sched_domain) {				\
 	.min_interval		= 1,					\
 	.max_interval		= 2,					\
-	.busy_factor		= 64,					\
+	.busy_factor		= 1,					\
 	.imbalance_pct		= 110,					\
 									\
 	.flags			= 1*SD_LOAD_BALANCE			\
@@ -125,7 +125,7 @@ int arch_update_cpu_topology(void);
 #define SD_CPU_INIT (struct sched_domain) {				\
 	.min_interval		= 1,					\
 	.max_interval		= 4,					\
-	.busy_factor		= 64,					\
+	.busy_factor		= 32,					\
 	.imbalance_pct		= 125,					\
 	.cache_nice_tries	= 1,					\
 	.busy_idx		= 2,					\

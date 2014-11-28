@@ -68,6 +68,7 @@ __cacheline_aligned_in_smp DEFINE_SEQLOCK(xtime_lock);
 
 int __read_mostly timekeeping_suspended;
 
+bool __read_mostly persistent_clock_exist = false;
 
 
 static void timekeeper_setup_internals(struct clocksource *clock)
@@ -456,6 +457,10 @@ void __init timekeeping_init(void)
 	struct timespec now, boot;
 
 	read_persistent_clock(&now);
+
+	if (now.tv_sec || now.tv_nsec)
+		persistent_clock_exist = true;
+
 	read_boot_clock(&boot);
 
 	seqlock_init(&timekeeper.lock);
@@ -510,11 +515,9 @@ static void __timekeeping_inject_sleeptime(struct timespec *delta)
 void timekeeping_inject_sleeptime(struct timespec *delta)
 {
 	unsigned long flags;
-	struct timespec ts;
 
 	
-	read_persistent_clock(&ts);
-	if (!(ts.tv_sec == 0 && ts.tv_nsec == 0))
+	if (has_persistent_clock())
 		return;
 
 	write_seqlock_irqsave(&timekeeper.lock, flags);
@@ -569,6 +572,8 @@ static int timekeeping_suspend(void)
 	static struct timespec	old_delta;
 
 	read_persistent_clock(&timekeeping_suspend_time);
+	if (timekeeping_suspend_time.tv_sec || timekeeping_suspend_time.tv_nsec)
+		persistent_clock_exist = true;
 
 	write_seqlock_irqsave(&timekeeper.lock, flags);
 	timekeeping_forward_now();

@@ -57,8 +57,8 @@ suspend_state_t requested_suspend_state = PM_SUSPEND_MEM;
 static struct wake_lock unknown_wakeup;
 static struct wake_lock suspend_backoff_lock;
 
-#define SUSPEND_BACKOFF_THRESHOLD	10
-#define SUSPEND_BACKOFF_INTERVAL	10000
+#define SUSPEND_BACKOFF_THRESHOLD	50
+#define SUSPEND_BACKOFF_INTERVAL	5000
 
 static unsigned suspend_short_count;
 
@@ -679,7 +679,7 @@ static int __init wakelocks_init(void)
 		goto err_suspend_sys_sync_work_queue;
 	}
 
-	suspend_work_queue = create_singlethread_workqueue("suspend");
+	suspend_work_queue = alloc_workqueue("suspend", WQ_UNBOUND|WQ_HIGHPRI, 0);
 	if (suspend_work_queue == NULL) {
 		ret = -ENOMEM;
 		goto err_suspend_work_queue;

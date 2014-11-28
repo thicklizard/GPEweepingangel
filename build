@@ -6,7 +6,7 @@ SOURCE_DIR="$(pwd)"
 #crosscompile stuff
 CROSSARCH="arm"
 CROSSCC="$CROSSARCH-eabi-"
-TOOLCHAIN="/home/thicklizard/android-toolchain-eabioptimized3/bin/arm-cortex_a15-linux-gnueabihf-"
+TOOLCHAIN="/home/thicklizard/android-toolchain-eabioptimized4/bin/arm-cortex_a15-linux-gnueabihf-"
 #our used directories
 PREBUILT="/home/thicklizard/m8kernel/prebuilt"
 OUT_DIR="$(pwd)/out"
@@ -87,7 +87,7 @@ echo "[BUILD]: Start of build: $DATE...";
 
 #build the kernel
 echo "[BUILD]: Bulding the kernel...";
-make -j12 ARCH=arm CROSS_COMPILE=/home/thicklizard/android-toolchain-eabioptimized3/bin/arm-cortex_a15-linux-gnueabihf-
+make -j12 ARCH=arm CROSS_COMPILE=/home/thicklizard/android-toolchain-eabioptimized4/bin/arm-cortex_a15-linux-gnueabihf-
 
 echo "[BUILD]: Done!...";
 

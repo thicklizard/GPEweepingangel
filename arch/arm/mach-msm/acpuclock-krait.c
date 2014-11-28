@@ -55,7 +55,7 @@ static void set_acpuclk_cpu_freq_foot_print(unsigned cpu, unsigned khz)
 
 static void set_acpuclk_L2_freq_foot_print(unsigned khz)
 {
-	unsigned *status = (unsigned *)(CPU_FOOT_PRINT_BASE + 0x68);
+	unsigned *status = (unsigned *)(CPU_FOOT_PRINT_BASE + 0x6c);
 	*status = khz;
 	mb();
 }
@@ -894,7 +894,7 @@ static void __init bus_init(const struct l2_level *l2_level)
 #ifdef CONFIG_CPU_VOLTAGE_TABLE
 
 #define HFPLL_MIN_VDD		 800000
-#define HFPLL_MAX_VDD		1350000
+#define HFPLL_MAX_VDD		1250000
 
 ssize_t acpuclk_get_vdd_levels_str(char *buf) {
 
