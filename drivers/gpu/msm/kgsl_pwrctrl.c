@@ -447,12 +447,8 @@ static int kgsl_pwrctrl_gpuclk_show(struct device *dev,
 	if (device == NULL)
 		return 0;
 	pwr = &device->pwrctrl;
-	if (device->state == KGSL_STATE_SLUMBER)
-		level = pwr->num_pwrlevels - 1;
-	 else
-		level = pwr->active_pwrlevel;
 	return snprintf(buf, PAGE_SIZE, "%d\n",
-			pwr->pwrlevels[level].gpu_freq);
+			pwr->pwrlevels[pwr->active_pwrlevel].gpu_freq);
 }
 
 static int kgsl_pwrctrl_pwrnap_store(struct device *dev,
