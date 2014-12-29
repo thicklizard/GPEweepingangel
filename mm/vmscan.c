@@ -126,7 +126,7 @@ struct mem_cgroup_zone {
 #define prefetchw_prev_lru_page(_page, _base, _field) do { } while (0)
 #endif
 
-int vm_swappiness = 60;
+int vm_swappiness = 40;
 long vm_total_pages;	
 
 static LIST_HEAD(shrinker_list);
