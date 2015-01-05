@@ -21,11 +21,9 @@
 #define MAX_BUF 100
 #define MAX_ATTR_LEN 40
 
-/*
 struct kobject *cpufreq_kobj;
-static struct kobject *thermal_kobj;
-*/
 static struct kobject *hotplug_kobj;
+static struct kobject *thermal_kobj;
 static struct kobject *apps_kobj;
 static struct kobject *pnpmgr_kobj;
 static struct kobject *adaptive_policy_kobj;
@@ -94,9 +92,6 @@ define_string_show(media_mode, media_mode_buf);
 define_string_store(media_mode, media_mode_buf, null_cb);
 power_attr(media_mode);
 
-static int data_throttling_value;
-
-/*
 static int thermal_c0_value = 9999999;
 #if (CONFIG_NR_CPUS >= 2)
 static int thermal_c1_value = 9999999;
@@ -140,9 +135,8 @@ power_attr(thermal_g0);
 define_int_show(thermal_batt, thermal_batt_value);
 define_int_store(thermal_batt, thermal_batt_value, null_cb);
 power_attr(thermal_batt);
-*/
 
-static unsigned int info_gpu_max_clk = 533000000;
+static unsigned int info_gpu_max_clk = 400000000;
 void set_gpu_clk(unsigned int value)
 {
         info_gpu_max_clk = value;
@@ -230,7 +224,6 @@ define_string_store(mp_util_low_or, mp_util_low_or_arg, null_cb);
 power_attr(mp_util_low_or);
 #endif 
 
-
 #ifdef CONFIG_PERFLOCK
 extern ssize_t
 perflock_scaling_max_show(struct kobject *kobj, struct kobj_attribute *attr,
@@ -247,7 +240,6 @@ perflock_scaling_min_store(struct kobject *kobj, struct kobj_attribute *attr,
 power_attr(perflock_scaling_max);
 power_attr(perflock_scaling_min);
 #endif
-
 
 #ifdef CONFIG_QSC_MODEM
 static bool mdm_lock_value = 1;
@@ -271,9 +263,7 @@ power_attr(mdm_lock);
 void mdm_lock(bool value)
 {
 	mdm_lock_value = value;
-/*
 	sysfs_notify(cpufreq_kobj, NULL, "mdm_lock");
-*/
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
@@ -346,7 +336,6 @@ static struct attribute *hotplug_g[] = {
 	NULL,
 };
 
-/*
 static struct attribute *thermal_g[] = {
 	&thermal_c0_attr.attr,
 #if (CONFIG_NR_CPUS >= 2)
@@ -362,7 +351,6 @@ static struct attribute *thermal_g[] = {
 	&pause_dt_attr.attr,
 	NULL,
 };
-*/
 
 static struct timer_list app_timer;
 static ssize_t
@@ -411,18 +399,17 @@ static struct attribute *battery_g[] = {
 	&charging_enabled_attr.attr,
 	NULL,
 };
-/*
+
 static struct attribute_group cpufreq_attr_group = {
 	.attrs = cpufreq_g,
 };
 
-static struct attribute_group thermal_attr_group = {
-	.attrs = thermal_g,
-};
-
-*/
 static struct attribute_group hotplug_attr_group = {
 	.attrs = hotplug_g,
+};
+
+static struct attribute_group thermal_attr_group = {
+	.attrs = thermal_g,
 };
 
 static struct attribute_group apps_attr_group = {
@@ -525,25 +512,23 @@ static int __init pnpmgr_init(void)
 		pr_err("%s: Can not allocate enough memory for pnpmgr.\n", __func__);
 		return -ENOMEM;
 	}
-/*
+
 	cpufreq_kobj = kobject_create_and_add("cpufreq", pnpmgr_kobj);
-	thermal_kobj = kobject_create_and_add("thermal", pnpmgr_kobj);
-*/
 	hotplug_kobj = kobject_create_and_add("hotplug", pnpmgr_kobj);
+	thermal_kobj = kobject_create_and_add("thermal", pnpmgr_kobj);
 	apps_kobj = kobject_create_and_add("apps", pnpmgr_kobj);
 	sysinfo_kobj = kobject_create_and_add("sysinfo", pnpmgr_kobj);
 	battery_kobj = kobject_create_and_add("battery", pnpmgr_kobj);
 	adaptive_policy_kobj = kobject_create_and_add("adaptive_policy", power_kobj);
 
-	if (!hotplug_kobj || !apps_kobj || !sysinfo_kobj || !battery_kobj || !adaptive_policy_kobj) {
+	if (!cpufreq_kobj || !hotplug_kobj || !thermal_kobj || !apps_kobj || !sysinfo_kobj || !battery_kobj || !adaptive_policy_kobj) {
 		pr_err("%s: Can not allocate enough memory.\n", __func__);
 		return -ENOMEM;
 	}
-/*
+
 	ret = sysfs_create_group(cpufreq_kobj, &cpufreq_attr_group);
-	ret |= sysfs_create_group(thermal_kobj, &thermal_attr_group);
-*/
 	ret |= sysfs_create_group(hotplug_kobj, &hotplug_attr_group);
+	ret |= sysfs_create_group(thermal_kobj, &thermal_attr_group);
 	ret |= sysfs_create_group(apps_kobj, &apps_attr_group);
 	ret |= sysfs_create_group(sysinfo_kobj, &sysinfo_attr_group);
 	ret |= sysfs_create_group(battery_kobj, &battery_attr_group);
@@ -563,12 +548,9 @@ static int __init pnpmgr_init(void)
 
 static void  __exit pnpmgr_exit(void)
 {
-/*
 	sysfs_remove_group(cpufreq_kobj, &cpufreq_attr_group);
-	sysfs_remove_group(thermal_kobj, &thermal_attr_group);
-*/
-	
 	sysfs_remove_group(hotplug_kobj, &hotplug_attr_group);
+	sysfs_remove_group(thermal_kobj, &thermal_attr_group);
 	sysfs_remove_group(apps_kobj, &apps_attr_group);
 	sysfs_remove_group(sysinfo_kobj, &sysinfo_attr_group);
 	sysfs_remove_group(battery_kobj, &battery_attr_group);

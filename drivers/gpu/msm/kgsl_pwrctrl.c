@@ -34,9 +34,9 @@
 #define UPDATE_BUSY_VAL		1000000
 #define UPDATE_BUSY		50
 
-#ifdef CONFIG_HTC_PNPMGR
+
 extern void set_gpu_clk(unsigned int);
-#endif
+
 
 struct clk_pair {
 	const char *name;
@@ -998,10 +998,10 @@ int kgsl_pwrctrl_init(struct kgsl_device *device)
 		pwr->pwrlevels[i].io_fraction =
 			pdata->pwrlevel[i].io_fraction;
 	}
-#ifdef CONFIG_HTC_PNPMGR
+
 	if (strstr(device->name, "kgsl-3d") != NULL)
 		set_gpu_clk(pwr->pwrlevels[0].gpu_freq);
-#endif	
+	
 	if (pwr->pwrlevels[0].gpu_freq > 0)
 		clk_set_rate(pwr->grp_clks[0], pwr->
 				pwrlevels[pwr->num_pwrlevels - 1].gpu_freq);
