@@ -1162,11 +1162,6 @@ int usb_suspend(struct device *dev, pm_message_t msg)
 
 	if (udev->bus->skip_resume) {
 		if (udev->state == USB_STATE_SUSPENDED) {
-			
-			if (get_radio_flag() & RADIO_FLAG_USB_UPLOAD) {
-				dev_info(dev, "skip suspend\n");
-			}
-			
 			return 0;
 		} else {
 			dev_err(dev, "abort suspend\n");
@@ -1195,12 +1190,13 @@ int usb_resume(struct device *dev, pm_message_t msg)
 	int			status;
 
 	if (udev->bus->skip_resume) {
-		
+
 		if (get_radio_flag() & RADIO_FLAG_USB_UPLOAD) {
 			dev_info(&udev->dev, "skip_resume\n");
 		}
-		
 		return 0;
+
+
 	}
 
 	pm_runtime_get_sync(dev->parent);

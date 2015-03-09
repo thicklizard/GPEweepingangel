@@ -51,10 +51,10 @@ struct snd_msm {
 #if defined(CONFIG_AUDIO_24BIT)
 #define PLAYBACK_PERIOD_SIZE	4096
 #else
-#define PLAYBACK_PERIOD_SIZE    2048
+#define PLAYBACK_PERIOD_SIZE    4096
 #endif
 #define CAPTURE_NUM_PERIODS	16
-#define CAPTURE_PERIOD_SIZE	320
+#define CAPTURE_PERIOD_SIZE	512
 
 static struct snd_pcm_hardware msm_pcm_hardware_capture = {
 	.info =                 (SNDRV_PCM_INFO_MMAP |

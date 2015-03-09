@@ -67,8 +67,8 @@ static int fm_switch_enable;
 static int fm_pcmrx_switch_enable;
 static int srs_alsa_ctrl_ever_called;
 
-#define INT_RX_VOL_MAX_STEPS 0x2000
-#define INT_RX_VOL_GAIN 0x2000
+#define INT_RX_VOL_MAX_STEPS 0x203A
+#define INT_RX_VOL_GAIN 0x203A
 
 #define INT_FM_RX_VOL_MAX_STEPS 100
 static int msm_route_fm_vol_control;

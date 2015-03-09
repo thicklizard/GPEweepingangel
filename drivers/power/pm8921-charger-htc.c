@@ -5301,7 +5301,7 @@ static void pj_full_detect_worker(struct work_struct *work)
 #define CONSECUTIVE_COUNT	3
 #define EOC_STOP_CHG_COUNT	(CONSECUTIVE_COUNT + 180)
 #define EOC_STOP_CHG_BY_CURR_COUNT	(CONSECUTIVE_COUNT)
-#define CLEAR_FULL_STATE_BY_LEVEL_THR		90
+#define CLEAR_FULL_STATE_BY_LEVEL_THR		99
 static void eoc_worker(struct work_struct *work)
 {
 	struct delayed_work *dwork = to_delayed_work(work);

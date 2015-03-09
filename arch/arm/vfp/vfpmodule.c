@@ -443,9 +443,9 @@ int vfp_restore_user_hwstate(struct user_vfp __user *ufp,
 static int vfp_hotplug(struct notifier_block *b, unsigned long action,
 	void *hcpu)
 {
-	if (action == CPU_DYING || action == CPU_DYING_FROZEN) {
-		vfp_force_reload((long)hcpu, current_thread_info());
-	} else if (action == CPU_STARTING || action == CPU_STARTING_FROZEN)
+	if (action == CPU_DYING || action == CPU_DYING_FROZEN)
+		vfp_current_hw_state[(long)hcpu] = NULL;
+	else if (action == CPU_STARTING || action == CPU_STARTING_FROZEN)
 		vfp_enable(NULL);
 	return NOTIFY_OK;
 }
@@ -510,6 +510,13 @@ static int proc_read_status(char *page, char **start, off_t off, int count,
 }
 #endif
 
+void vfp_kmode_exception(void)
+{
+	if (fmrx(FPEXC) & FPEXC_EN)
+		pr_crit("BUG: unsupported FP instruction in kernel mode\n");
+	else
+		pr_crit("BUG: FP instruction issued in kernel mode with FP unit disabled\n");
+}
 #ifdef CONFIG_KERNEL_MODE_NEON
 
 /*
@@ -625,4 +632,4 @@ static int __init vfp_init(void)
 	return 0;
 }
 
-rootfs_initcall(vfp_init);
+core_initcall(vfp_init);
